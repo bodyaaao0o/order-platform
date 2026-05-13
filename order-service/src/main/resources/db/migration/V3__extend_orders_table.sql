@@ -1,0 +1,8 @@
+ALTER TABLE orders
+    ADD COLUMN customer_email VARCHAR(255) NOT NULL,
+
+    ADD COLUMN total_amount NUMERIC(19,2) NOT NULL,
+
+    ADD COLUMN status VARCHAR(50) NOT NULL,
+
+    ADD COLUMN created_at TIMESTAMP NOT NULL;

@@ -8,10 +8,14 @@ import com.orderplatform.order_service.entity.OrderItem;
 import com.orderplatform.order_service.entity.OrderStatus;
 import com.orderplatform.order_service.exception.InvalidOrderStateException;
 import com.orderplatform.order_service.exception.OrderNotFoundException;
+import com.orderplatform.order_service.mapper.OrderMapper;
 import com.orderplatform.order_service.repository.OrderRepository;
 import com.orderplatform.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.annotation.Transient;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +28,7 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderMapper orderMapper;
 
     @Override
     public OrderResponse createOrder (CreateOrderRequest request) {
@@ -38,7 +43,6 @@ public class OrderServiceImpl implements OrderService {
                 .customerEmail(request.customerEmail())
                 .totalAmount(totalAmount)
                 .status(OrderStatus.CREATED)
-                .createdAt(LocalDateTime.now())
                 .build();
 
         List<OrderItem> items = request.items()
@@ -60,31 +64,22 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        return new OrderResponse(
-                savedOrder.getId(),
-                savedOrder.getCustomerEmail(),
-                savedOrder.getTotalAmount(),
-                savedOrder.getStatus(),
-                savedOrder.getCreatedAt()
-        );
+        return orderMapper.toResponse(savedOrder);
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "orders", key = "#id")
     public OrderResponse getOrderById (Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
 
-        return new OrderResponse(
-                order.getId(),
-                order.getCustomerEmail(),
-                order.getTotalAmount(),
-                order.getStatus(),
-                order.getCreatedAt()
-        );
+        return orderMapper.toResponse(order);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "orders", key = "#id")
     public OrderResponse updateOrderStatus (Long id, UpdateOrderStatusRequest request) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
@@ -93,22 +88,33 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(request.status());
 
-        return new OrderResponse(
-                order.getId(),
-                order.getCustomerEmail(),
-                order.getTotalAmount(),
-                order.getStatus(),
-                order.getCreatedAt()
-        );
+        return orderMapper.toResponse(order);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "orders", key = "#id")
     public void  deleteOrder (Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
 
         orderRepository.delete(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<OrderResponse> getAllOrders (OrderStatus status, Pageable pageable) {
+        Page<Order> orders;
+
+        if (status != null) {
+
+            orders = orderRepository.findALlByStatus(status, pageable);
+        } else {
+
+            orders = orderRepository.findAll(pageable);
+        }
+
+        return orders.map(orderMapper::toResponse);
     }
 
     private void validateStatusTransaction(OrderStatus currentStatus, OrderStatus newStatus) {

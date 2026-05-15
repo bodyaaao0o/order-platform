@@ -2,6 +2,9 @@ package com.orderplatform.order_service.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
+import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,6 +13,12 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
+@SQLDelete(sql = """
+        UPDATE orders
+        SET deleted = true
+        WHERE id = ?
+        """)
+@Where(clause = "deleted = false")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -40,4 +49,24 @@ public class Order {
             orphanRemoval = true
     )
     private List<OrderItem> items = new ArrayList<>();
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
+
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

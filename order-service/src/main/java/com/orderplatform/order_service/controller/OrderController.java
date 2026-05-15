@@ -4,9 +4,12 @@ package com.orderplatform.order_service.controller;
 import com.orderplatform.order_service.dto.CreateOrderRequest;
 import com.orderplatform.order_service.dto.OrderResponse;
 import com.orderplatform.order_service.dto.UpdateOrderStatusRequest;
+import com.orderplatform.order_service.entity.OrderStatus;
 import com.orderplatform.order_service.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +41,11 @@ public class OrderController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
+    }
+
+    @GetMapping
+    public Page<OrderResponse> getAllOrders(@RequestParam(required = false)OrderStatus status, Pageable pageable) {
+        return orderService.getAllOrders(status, pageable);
     }
 
 }

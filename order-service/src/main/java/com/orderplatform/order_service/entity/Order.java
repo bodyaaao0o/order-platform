@@ -56,6 +56,10 @@ public class Order {
     @Column(nullable = false)
     private boolean deleted = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
 
     @PrePersist
     public void prePersist() {

@@ -25,6 +25,9 @@ spring:
   flyway:
     enabled: true
 
+jwt:
+  secret: mySuperSecretKeyMySuperSecretKey123
+
 logging:
   level:
     org.hibernate.SQL: DEBUG

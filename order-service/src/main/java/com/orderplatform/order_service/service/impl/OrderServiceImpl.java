@@ -3,19 +3,20 @@ package com.orderplatform.order_service.service.impl;
 import com.orderplatform.order_service.dto.CreateOrderRequest;
 import com.orderplatform.order_service.dto.OrderResponse;
 import com.orderplatform.order_service.dto.UpdateOrderStatusRequest;
-import com.orderplatform.order_service.entity.Order;
-import com.orderplatform.order_service.entity.OrderItem;
-import com.orderplatform.order_service.entity.OrderStatus;
+import com.orderplatform.order_service.entity.*;
 import com.orderplatform.order_service.exception.InvalidOrderStateException;
 import com.orderplatform.order_service.exception.OrderNotFoundException;
 import com.orderplatform.order_service.mapper.OrderMapper;
 import com.orderplatform.order_service.repository.OrderRepository;
+import com.orderplatform.order_service.repository.UserRepository;
 import com.orderplatform.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final UserRepository userRepository;
 
     @Override
     public OrderResponse createOrder (CreateOrderRequest request) {
@@ -39,10 +41,18 @@ public class OrderServiceImpl implements OrderService {
                         .multiply(BigDecimal.valueOf(item.quantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow();
+
         Order order = Order.builder()
                 .customerEmail(request.customerEmail())
                 .totalAmount(totalAmount)
                 .status(OrderStatus.CREATED)
+                .user(user)
                 .build();
 
         List<OrderItem> items = request.items()
@@ -106,15 +116,47 @@ public class OrderServiceImpl implements OrderService {
     public Page<OrderResponse> getAllOrders (OrderStatus status, Pageable pageable) {
         Page<Order> orders;
 
-        if (status != null) {
+        Authentication authentication =
+                SecurityContextHolder.getContext()
+                        .getAuthentication();
 
-            orders = orderRepository.findALlByStatus(status, pageable);
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow();
+
+        if(user.getRole() == UserRole.ADMIN) {
+            if (status != null) {
+
+                orders = orderRepository.findALlByStatus(status, pageable);
+            } else {
+
+                orders = orderRepository.findAll(pageable);
+            }
+
+            return orders.map(orderMapper::toResponse);
         } else {
+            if (status != null) {
 
-            orders = orderRepository.findAll(pageable);
+                orders = orderRepository
+                        .findByUserIdAndStatus(
+                                user.getId(),
+                                status,
+                                pageable
+                        );
+
+            } else {
+
+                orders = orderRepository
+                        .findByUserId(
+                                user.getId(),
+                                pageable
+                        );
+            }
         }
 
         return orders.map(orderMapper::toResponse);
+
     }
 
     private void validateStatusTransaction(OrderStatus currentStatus, OrderStatus newStatus) {

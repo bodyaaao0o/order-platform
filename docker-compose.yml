@@ -25,5 +25,27 @@ services:
 
     restart: unless-stopped
 
+  app:
+    build: .
+
+    container_name: order-platform-app
+
+    depends_on:
+      - postgres
+      - redis
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_platform
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+
+      JWT_SECRET: mySuperSecretKeyMySuperSecretKey123
+
 volumes:
   postgres_data:

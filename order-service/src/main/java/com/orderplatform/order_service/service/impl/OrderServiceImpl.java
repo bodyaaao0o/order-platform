@@ -4,8 +4,10 @@ import com.orderplatform.order_service.dto.CreateOrderRequest;
 import com.orderplatform.order_service.dto.OrderResponse;
 import com.orderplatform.order_service.dto.UpdateOrderStatusRequest;
 import com.orderplatform.order_service.entity.*;
+import com.orderplatform.order_service.event.OrderCreatedEvent;
 import com.orderplatform.order_service.exception.InvalidOrderStateException;
 import com.orderplatform.order_service.exception.OrderNotFoundException;
+import com.orderplatform.order_service.kafka.OrderProducer;
 import com.orderplatform.order_service.mapper.OrderMapper;
 import com.orderplatform.order_service.repository.OrderRepository;
 import com.orderplatform.order_service.repository.UserRepository;
@@ -31,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final UserRepository userRepository;
+    private final OrderProducer orderProducer;
 
     @Override
     public OrderResponse createOrder (CreateOrderRequest request) {
@@ -73,6 +76,14 @@ public class OrderServiceImpl implements OrderService {
         order.setItems(items);
 
         Order savedOrder = orderRepository.save(order);
+
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                savedOrder.getId(),
+                savedOrder.getCustomerEmail(),
+                savedOrder.getTotalAmount()
+        );
+
+        orderProducer.sendOrderCreatedEvent(event);
 
         return orderMapper.toResponse(savedOrder);
     }

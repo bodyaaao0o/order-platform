@@ -25,6 +25,35 @@ spring:
   flyway:
     enabled: true
 
+  jackson:
+    time-zone: Europe/Kyiv
+
+  kafka:
+    bootstrap-servers: kafka:9092
+
+    listener:
+      missing-topics-fatal: false
+
+    admin:
+      auto-create: true
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+    consumer:
+      group-id: order-group
+      auto-offset-reset: earliest
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+        spring.json.trusted.packages: "*"
+
+jwt:
+  secret: mySuperSecretKeyMySuperSecretKey123
+
 logging:
   level:
     org.hibernate.SQL: DEBUG

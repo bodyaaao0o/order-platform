@@ -57,5 +57,16 @@ public class GlobalExceptionHandler {
                 errors
         );
     }
+
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> handleEmailAlreadyExist( EmailAlreadyExistsException ex) {
+        return Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", 409,
+                "error", "Conflict",
+                "message", ex.getMessage()
+        );
+    }
 }
 

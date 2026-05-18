@@ -7,6 +7,7 @@ import com.orderplatform.order_service.dto.RegisterRequest;
 import com.orderplatform.order_service.dto.UserResponse;
 import com.orderplatform.order_service.entity.User;
 import com.orderplatform.order_service.entity.UserRole;
+import com.orderplatform.order_service.exception.EmailAlreadyExistsException;
 import com.orderplatform.order_service.repository.UserRepository;
 
 import com.orderplatform.order_service.service.JwtService;
@@ -28,6 +29,10 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public void register(@RequestBody RegisterRequest request) {
+
+        if(userRepository.existsByEmail(request.email())) {
+            throw new EmailAlreadyExistsException(request.email());
+        }
 
         User user = User.builder()
                 .email(request.email())

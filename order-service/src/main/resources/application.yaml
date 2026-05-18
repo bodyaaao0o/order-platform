@@ -3,7 +3,7 @@ spring:
     name: order-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/order_platform?options=-c%20TimeZone=Europe/Kyiv
+    url: jdbc:postgresql://localhost:5433/order_platform
     username: postgres
     password: postgres
 
@@ -24,6 +24,9 @@ spring:
 
   flyway:
     enabled: true
+
+  jackson:
+    time-zone: Europe/Kyiv
 
 jwt:
   secret: mySuperSecretKeyMySuperSecretKey123

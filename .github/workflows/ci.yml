@@ -31,7 +31,9 @@ jobs:
           cache: maven
 
       - name: Grant execute permission for Maven Wrapper
+        working-directory: ./order-service
         run: chmod +x mvnw
 
       - name: Run tests
+        working-directory: ./order-service
         run: ./mvnw clean verify

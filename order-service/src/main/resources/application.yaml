@@ -71,6 +71,7 @@ management:
     health:
       show-details: always
 
-  health:
-    redis:
-      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true

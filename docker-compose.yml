@@ -97,6 +97,32 @@ services:
 
     restart: unless-stopped
 
+  prometheus:
+    image: prom/prometheus
+
+    container_name: order-platform-prometheus
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana
+
+    container_name: order-platform-grafana
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - prometheus
+
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   kafka_data:

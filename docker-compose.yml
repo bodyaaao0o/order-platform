@@ -50,6 +50,13 @@ services:
 
       JWT_SECRET: mySuperSecretKeyMySuperSecretKey123
 
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
   kafka:
     image: confluentinc/cp-kafka:7.6.1
 

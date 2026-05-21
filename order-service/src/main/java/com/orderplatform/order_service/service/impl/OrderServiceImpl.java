@@ -1,5 +1,7 @@
 package com.orderplatform.order_service.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.orderplatform.order_service.dto.CreateOrderRequest;
 import com.orderplatform.order_service.dto.OrderResponse;
 import com.orderplatform.order_service.dto.UpdateOrderStatusRequest;
@@ -10,8 +12,10 @@ import com.orderplatform.order_service.exception.OrderNotFoundException;
 import com.orderplatform.order_service.kafka.OrderProducer;
 import com.orderplatform.order_service.mapper.OrderMapper;
 import com.orderplatform.order_service.repository.OrderRepository;
+import com.orderplatform.order_service.repository.OutboxEventRepository;
 import com.orderplatform.order_service.repository.UserRepository;
 import com.orderplatform.order_service.service.OrderService;
+import com.orderplatform.order_service.config.KafkaTopics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -34,8 +38,11 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final UserRepository userRepository;
     private final OrderProducer orderProducer;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
+    @Transactional
     public OrderResponse createOrder (CreateOrderRequest request) {
 
         BigDecimal totalAmount = request.items()
@@ -83,7 +90,29 @@ public class OrderServiceImpl implements OrderService {
                 savedOrder.getTotalAmount()
         );
 
-        orderProducer.sendOrderCreatedEvent(event);
+        String payload;
+
+        try {
+
+            payload = objectMapper.writeValueAsString(event);
+
+        } catch (JsonProcessingException e) {
+
+            throw new RuntimeException(
+                    "Failed to serialize order event",
+                    e
+            );
+        }
+
+        OutboxEvent outboxEvent = OutboxEvent.builder()
+                .eventType(KafkaTopics.ORDER_CREATED)
+                .payload(payload)
+                .createdAt(LocalDateTime.now())
+                .processed(false)
+                .build();
+
+
+        outboxEventRepository.save(outboxEvent);
 
         return orderMapper.toResponse(savedOrder);
     }

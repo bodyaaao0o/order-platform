@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y curl
 
 WORKDIR /app
 
-COPY order-service/target/order-service-0.0.1-SNAPSHOT.jar app.jar
+COPY target/notification-service-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8081
 

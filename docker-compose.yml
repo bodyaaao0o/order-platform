@@ -138,6 +138,18 @@ services:
 
     restart: unless-stopped
 
+  gateway-service:
+    build:
+      context: ./gateway-service
+
+    container_name: gateway-service
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      - app
+
 volumes:
   postgres_data:
   kafka_data:

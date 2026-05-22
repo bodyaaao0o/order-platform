@@ -1,0 +1,13 @@
+server:
+  port: 8083
+
+spring:
+
+  application:
+    name: email-worker-service
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest

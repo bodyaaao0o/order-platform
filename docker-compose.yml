@@ -165,6 +165,20 @@ services:
 
     restart: unless-stopped
 
+  email-worker-service:
+    build:
+      context: ./email-worker-service
+
+    container_name: email-worker-service
+
+    ports:
+      - "8083:8083"
+
+    depends_on:
+      - rabbitmq
+
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   kafka_data:

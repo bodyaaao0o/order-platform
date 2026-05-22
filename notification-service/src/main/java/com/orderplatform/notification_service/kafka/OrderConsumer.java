@@ -2,10 +2,12 @@ package com.orderplatform.notification_service.kafka;
 
 import com.orderplatform.notification_service.config.KafkaTopics;
 
+import com.orderplatform.notification_service.dto.EmailMessage;
 import com.orderplatform.notification_service.event.OrderCreatedEvent;
 
 import com.orderplatform.notification_service.service.NotificationService;
 
+import com.orderplatform.notification_service.service.RabbitProducer;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 public class OrderConsumer {
 
     private final NotificationService notificationService;
+    private final RabbitProducer rabbitProducer;
 
     @KafkaListener(
             topics = KafkaTopics.ORDER_CREATED,
@@ -34,9 +37,12 @@ public class OrderConsumer {
                 event
         );
 
-        notificationService.sendOrderCreatedEmail(
-                event.customerEmail(),
-                event.orderId()
+        rabbitProducer.sendEmailMessage(
+                new EmailMessage(
+                        event.customerEmail(),
+                        "Order Created",
+                        "Your order #" + event.orderId() + " created"
+                )
         );
     }
 }

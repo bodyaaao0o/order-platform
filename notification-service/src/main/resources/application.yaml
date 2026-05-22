@@ -16,5 +16,11 @@ spring:
         spring.json.trusted.packages: "*"
         spring.json.value.default.type: com.orderplatform.notification_service.event.OrderCreatedEvent
 
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+
 server:
   port: 8082

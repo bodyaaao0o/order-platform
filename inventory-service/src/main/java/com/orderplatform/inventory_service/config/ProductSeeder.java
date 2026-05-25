@@ -1,8 +1,8 @@
 package com.orderplatform.inventory_service.config;
 
 
-import com.orderplatform.inventory_service.entity.Product;
-import com.orderplatform.inventory_service.repository.ProductRepository;
+import com.orderplatform.inventory_service.product.Product;
+import com.orderplatform.inventory_service.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;

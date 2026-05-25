@@ -1,10 +1,10 @@
 package com.orderplatform.inventory_service.service;
 
 
-import com.orderplatform.inventory_service.entity.Product;
+import com.orderplatform.inventory_service.product.Product;
 import com.orderplatform.inventory_service.exception.InsufficientStockException;
 import com.orderplatform.inventory_service.exception.ProductNotFoundException;
-import com.orderplatform.inventory_service.repository.ProductRepository;
+import com.orderplatform.inventory_service.product.ProductRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

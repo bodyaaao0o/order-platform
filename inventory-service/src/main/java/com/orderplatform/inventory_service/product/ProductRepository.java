@@ -1,6 +1,5 @@
-package com.orderplatform.inventory_service.repository;
+package com.orderplatform.inventory_service.product;
 
-import com.orderplatform.inventory_service.entity.Product;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

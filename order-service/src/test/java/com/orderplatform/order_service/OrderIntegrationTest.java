@@ -120,9 +120,10 @@ class OrderIntegrationTest extends AbstractIntegrationTest {
                         "test@test.com",
                         List.of(
                                 new CreateOrderItemRequest(
+                                        "LAPTOP-1",
                                         "Laptop",
-                                        2,
-                                        BigDecimal.valueOf(100)
+                                        1,
+                                        BigDecimal.valueOf(1000)
                                 )
                         )
                 );
@@ -154,6 +155,6 @@ class OrderIntegrationTest extends AbstractIntegrationTest {
                 .isEqualTo(OrderStatus.CREATED);
 
         assertThat(savedOrder.getTotalAmount())
-                .isEqualByComparingTo(BigDecimal.valueOf(200));
+                .isEqualByComparingTo(BigDecimal.valueOf(1000));
     }
 }

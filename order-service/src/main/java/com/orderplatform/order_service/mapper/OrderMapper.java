@@ -34,6 +34,7 @@ public class OrderMapper {
     private OrderItemResponse toItemResponse(OrderItem item) {
 
         return new OrderItemResponse(
+                item.getSku(),
                 item.getProductName(),
                 item.getQuantity(),
                 item.getPrice()

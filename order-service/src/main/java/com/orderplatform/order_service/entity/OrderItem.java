@@ -20,6 +20,9 @@ public class OrderItem {
     private Long id;
 
     @Column(nullable = false)
+    private String sku;
+
+    @Column(nullable = false)
     private String productName;
 
     @Column(nullable = false)

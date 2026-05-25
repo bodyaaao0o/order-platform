@@ -1,5 +1,6 @@
 package com.orderplatform.order_service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.orderplatform.order_service.dto.CreateOrderItemRequest;
 import com.orderplatform.order_service.dto.CreateOrderRequest;
 import com.orderplatform.order_service.dto.OrderResponse;
@@ -7,6 +8,7 @@ import com.orderplatform.order_service.entity.Order;
 import com.orderplatform.order_service.entity.OrderStatus;
 import com.orderplatform.order_service.mapper.OrderMapper;
 import com.orderplatform.order_service.repository.OrderRepository;
+import com.orderplatform.order_service.repository.OutboxEventRepository;
 import com.orderplatform.order_service.repository.UserRepository;
 import com.orderplatform.order_service.service.impl.OrderServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -38,6 +40,12 @@ class OrderServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private OutboxEventRepository outboxEventRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
     @InjectMocks
     private OrderServiceImpl orderService;
 
@@ -47,6 +55,7 @@ class OrderServiceImplTest {
                 "test@test.com",
                 List.of(
                         new CreateOrderItemRequest(
+                                "LAPTOP-1",
                                 "Laptop",
                                 2,
                                 BigDecimal.valueOf(100)

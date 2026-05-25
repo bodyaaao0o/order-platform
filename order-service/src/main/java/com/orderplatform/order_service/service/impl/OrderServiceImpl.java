@@ -69,6 +69,7 @@ public class OrderServiceImpl implements OrderService {
                 .map(itemRequest -> {
 
                     OrderItem item = OrderItem.builder()
+                            .sku(itemRequest.sku())
                             .productName(itemRequest.productName())
                             .quantity(itemRequest.quantity())
                             .price(itemRequest.price())
@@ -87,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .map(item -> new InventoryReserveRequestEvent(
                         savedOrder.getId(),
-                        item.getProductName(),
+                        item.getSku(),
                         item.getQuantity()
                 ))
                 .forEach(event -> saveOutboxEvent(
@@ -200,6 +201,10 @@ public class OrderServiceImpl implements OrderService {
 
         if (currentStatus == OrderStatus.CANCELLED) {
             throw new InvalidOrderStateException("Cancelled order cannot be modified");
+        }
+
+        if (currentStatus == OrderStatus.FAILED) {
+            throw new InvalidOrderStateException("Failed order cannot be modified");
         }
     }
 

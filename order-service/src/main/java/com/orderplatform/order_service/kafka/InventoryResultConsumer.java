@@ -65,11 +65,11 @@ public class InventoryResultConsumer {
                 .orElseThrow(() -> new OrderNotFoundException(event.orderId()));
 
         if (order.getStatus() != OrderStatus.COMPLETED) {
-            order.setStatus(OrderStatus.CANCELLED);
+            order.setStatus(OrderStatus.FAILED);
         }
 
         log.warn(
-                "Order cancelled because inventory reservation failed: orderId={}, sku={}, quantity={}, reason={}",
+                "Order failed because inventory reservation failed: orderId={}, sku={}, quantity={}, reason={}",
                 event.orderId(),
                 event.sku(),
                 event.quantity(),

@@ -10,6 +10,9 @@ import java.math.BigDecimal;
 public record CreateOrderItemRequest (
 
         @NotBlank
+        String sku,
+
+        @NotBlank
         String productName,
 
         @NotNull

@@ -7,28 +7,40 @@ spring:
 
   cloud:
     gateway:
+      server:
+        webflux:
+          routes:
 
-      routes:
+            - id: order-service
 
-        - id: order-service
+              uri: http://app:8081
 
-          uri: http://app:8081
+              predicates:
+                - Path=/api/v1/orders/**
 
-          predicates:
-            - Path=/api/v1/orders/**
+            - id: auth-service
 
-        - id: auth-service
+              uri: http://app:8081
 
-          uri: http://app:8081
+              predicates:
+                - Path=/api/v1/auth/**
 
-          predicates:
-            - Path=/api/v1/auth/**
+            - id: inventory-service
+
+              uri: http://inventory-service:8084
+
+              predicates:
+                - Path=/api/v1/products/**
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,prometheus
 
 jwt:
   secret: mySuperSecretKeyMySuperSecretKey123
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}] %-5level %logger{36} - %msg%n"

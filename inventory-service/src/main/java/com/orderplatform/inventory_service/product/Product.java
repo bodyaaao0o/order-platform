@@ -1,4 +1,4 @@
-package com.orderplatform.inventory_service.entity;
+package com.orderplatform.inventory_service.product;
 
 
 import jakarta.persistence.*;

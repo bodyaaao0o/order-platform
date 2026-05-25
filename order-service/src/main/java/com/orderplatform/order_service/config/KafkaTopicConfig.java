@@ -37,4 +37,23 @@ public class KafkaTopicConfig {
                 (short) 1
         );
     }
+
+    @Bean
+    public NewTopic inventoryReservedTopic() {
+        return new NewTopic(
+                KafkaTopics.INVENTORY_RESERVED,
+                1,
+                (short) 1
+        );
+    }
+
+    public NewTopic inventoryFailedTopic() {
+        return new NewTopic(
+                KafkaTopics.INVENTORY_FAILED,
+                1,
+                (short) 1
+        );
+    }
+
+
 }

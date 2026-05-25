@@ -1,7 +1,9 @@
 package com.orderplatform.inventory_service.kafka;
 
 import com.orderplatform.inventory_service.config.KafkaTopics;
+import com.orderplatform.inventory_service.event.InventoryFailedEvent;
 import com.orderplatform.inventory_service.event.InventoryReserveRequestEvent;
+import com.orderplatform.inventory_service.event.InventoryReservedEvent;
 import com.orderplatform.inventory_service.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component;
 public class InventoryReserveRequestConsumer {
 
     private final InventoryService inventoryService;
+    private final InventoryProducer inventoryProducer;
 
     @KafkaListener(
             topics = KafkaTopics.INVENTORY_RESERVE_REQUESTED,
@@ -27,6 +30,46 @@ public class InventoryReserveRequestConsumer {
                 event.sku(),
                 event.quantity()
         );
+
+        try {
+            inventoryService.reserveStock(
+                    event.orderId(),
+                    event.sku(),
+                    event.quantity()
+            );
+
+            inventoryProducer.sendInventoryReservedEvent(
+                    new InventoryReservedEvent(
+                            event.orderId(),
+                            event.sku(),
+                            event.quantity()
+                    )
+            );
+
+            log.info(
+                    "Inventory reserved: orderId={}, sku={}, quantity={}",
+                    event.orderId(),
+                    event.sku(),
+                    event.quantity()
+            );
+        } catch (RuntimeException e) {
+            inventoryProducer.sendInventoryFailedEvent(
+                    new InventoryFailedEvent(
+                            event.orderId(),
+                            event.sku(),
+                            event.quantity(),
+                            e.getMessage()
+                    )
+            );
+
+            log.warn(
+                    "Inventory reservation failed: orderId={}, sku={}, quantity={}, reason={}",
+                    event.orderId(),
+                    event.sku(),
+                    event.quantity(),
+                    e.getMessage()
+            );
+        }
 
         inventoryService.reserveStock(
                 event.orderId(),

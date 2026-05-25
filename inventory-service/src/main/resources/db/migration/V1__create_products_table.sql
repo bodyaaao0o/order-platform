@@ -1,0 +1,14 @@
+CREATE TABLE products
+(
+    id BIGSERIAL PRIMARY KEY,
+
+    name VARCHAR(255) NOT NULL,
+
+    sku VARCHAR(255) UNIQUE NOT NULL,
+
+    price NUMERIC(19,2) NOT NULL,
+
+    stock INTEGER NOT NULL,
+
+    reserved_stock INTEGER NOT NULL
+);

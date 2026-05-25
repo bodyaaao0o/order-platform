@@ -213,6 +213,28 @@ services:
 
     restart: unless-stopped
 
+  inventory-service:
+    build:
+      context: ./inventory-service
+
+    container_name: inventory-service
+
+    depends_on:
+      - postgres
+      - kafka
+
+    ports:
+      - "8084:8084"
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_platform
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   kafka_data:

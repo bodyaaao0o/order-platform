@@ -1,0 +1,47 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: inventory-service
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/order_platform
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+    properties:
+      hibernate:
+        default_schema: inventory
+
+    show-sql: false
+
+  flyway:
+    enabled: true
+    schemas: inventory
+    default-schema: inventory
+    table: inventory_flyway_schema_history
+
+  kafka:
+    bootstrap-servers: kafka:9092
+
+    consumer:
+      group-id: inventory-group
+      auto-offset-reset: earliest
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.orderplatform.inventory_service.event.InventoryReserveRequestEvent
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus

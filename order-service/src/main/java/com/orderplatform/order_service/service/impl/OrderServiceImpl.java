@@ -6,10 +6,10 @@ import com.orderplatform.order_service.dto.CreateOrderRequest;
 import com.orderplatform.order_service.dto.OrderResponse;
 import com.orderplatform.order_service.dto.UpdateOrderStatusRequest;
 import com.orderplatform.order_service.entity.*;
+import com.orderplatform.order_service.event.InventoryReserveRequestEvent;
 import com.orderplatform.order_service.event.OrderCreatedEvent;
 import com.orderplatform.order_service.exception.InvalidOrderStateException;
 import com.orderplatform.order_service.exception.OrderNotFoundException;
-import com.orderplatform.order_service.kafka.OrderProducer;
 import com.orderplatform.order_service.mapper.OrderMapper;
 import com.orderplatform.order_service.repository.OrderRepository;
 import com.orderplatform.order_service.repository.OutboxEventRepository;
@@ -37,7 +37,6 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final UserRepository userRepository;
-    private final OrderProducer orderProducer;
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
 
@@ -84,35 +83,30 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        OrderCreatedEvent event = new OrderCreatedEvent(
+        savedOrder.getItems()
+                .stream()
+                .map(item -> new InventoryReserveRequestEvent(
+                        savedOrder.getId(),
+                        item.getProductName(),
+                        item.getQuantity()
+                ))
+                .forEach(event -> saveOutboxEvent(
+                        KafkaTopics.INVENTORY_RESERVE_REQUESTED,
+                        event,
+                        "Failed to serialize inventory reserve event"
+                ));
+
+        OrderCreatedEvent orderCreatedEvent = new OrderCreatedEvent(
                 savedOrder.getId(),
                 savedOrder.getCustomerEmail(),
                 savedOrder.getTotalAmount()
         );
 
-        String payload;
-
-        try {
-
-            payload = objectMapper.writeValueAsString(event);
-
-        } catch (JsonProcessingException e) {
-
-            throw new RuntimeException(
-                    "Failed to serialize order event",
-                    e
-            );
-        }
-
-        OutboxEvent outboxEvent = OutboxEvent.builder()
-                .eventType(KafkaTopics.ORDER_CREATED)
-                .payload(payload)
-                .createdAt(LocalDateTime.now())
-                .processed(false)
-                .build();
-
-
-        outboxEventRepository.save(outboxEvent);
+        saveOutboxEvent(
+                KafkaTopics.ORDER_CREATED,
+                orderCreatedEvent,
+                "Failed to serialize order event"
+        );
 
         return orderMapper.toResponse(savedOrder);
     }
@@ -207,5 +201,34 @@ public class OrderServiceImpl implements OrderService {
         if (currentStatus == OrderStatus.CANCELLED) {
             throw new InvalidOrderStateException("Cancelled order cannot be modified");
         }
+    }
+
+    private void saveOutboxEvent(
+            String eventType,
+            Object event,
+            String errorMessage
+    ) {
+        String payload;
+
+        try {
+
+            payload = objectMapper.writeValueAsString(event);
+
+        } catch (JsonProcessingException e) {
+
+            throw new RuntimeException(
+                    errorMessage,
+                    e
+            );
+        }
+
+        OutboxEvent outboxEvent = OutboxEvent.builder()
+                .eventType(eventType)
+                .payload(payload)
+                .createdAt(LocalDateTime.now())
+                .processed(false)
+                .build();
+
+        outboxEventRepository.save(outboxEvent);
     }
 }

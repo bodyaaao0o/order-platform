@@ -27,4 +27,14 @@ public class KafkaTopicConfig {
                 (short) 1
         );
     }
+
+    @Bean
+    public NewTopic inventoryReserveRequestedTopic() {
+
+        return new NewTopic(
+                KafkaTopics.INVENTORY_RESERVE_REQUESTED,
+                1,
+                (short) 1
+        );
+    }
 }

@@ -1,6 +1,10 @@
 package com.orderplatform.order_service.scheduler;
 
+import com.orderplatform.order_service.config.KafkaTopics;
+
 import com.orderplatform.order_service.entity.OutboxEvent;
+
+import com.orderplatform.order_service.event.InventoryReserveRequestEvent;
 
 import com.orderplatform.order_service.event.OrderCreatedEvent;
 
@@ -41,13 +45,7 @@ public class OutboxScheduler {
 
             try {
 
-                OrderCreatedEvent orderEvent =
-                        objectMapper.readValue(
-                                event.getPayload(),
-                                OrderCreatedEvent.class
-                        );
-
-                orderProducer.sendOrderCreatedEvent(orderEvent);
+                publishEvent(event);
 
                 event.setProcessed(true);
 
@@ -67,5 +65,33 @@ public class OutboxScheduler {
                 );
             }
         }
+    }
+
+    private void publishEvent(OutboxEvent event) throws Exception {
+        if (KafkaTopics.ORDER_CREATED.equals(event.getEventType())) {
+            OrderCreatedEvent orderEvent =
+                    objectMapper.readValue(
+                            event.getPayload(),
+                            OrderCreatedEvent.class
+                    );
+
+            orderProducer.sendOrderCreatedEvent(orderEvent);
+            return;
+        }
+
+        if (KafkaTopics.INVENTORY_RESERVE_REQUESTED.equals(event.getEventType())) {
+            InventoryReserveRequestEvent inventoryEvent =
+                    objectMapper.readValue(
+                            event.getPayload(),
+                            InventoryReserveRequestEvent.class
+                    );
+
+            orderProducer.sendInventoryReserveRequestEvent(inventoryEvent);
+            return;
+        }
+
+        throw new IllegalArgumentException(
+                "Unsupported outbox event type: " + event.getEventType()
+        );
     }
 }

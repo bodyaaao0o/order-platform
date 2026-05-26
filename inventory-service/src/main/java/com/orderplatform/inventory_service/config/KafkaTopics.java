@@ -10,4 +10,7 @@ public class KafkaTopics {
 
     public static final String INVENTORY_FAILED =
             "inventory-failed";
+
+    public static final String PAYMENT_REQUESTED =
+            "payment-requested";
 }

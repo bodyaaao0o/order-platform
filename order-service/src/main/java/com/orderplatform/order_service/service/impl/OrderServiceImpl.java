@@ -91,7 +91,9 @@ public class OrderServiceImpl implements OrderService {
                         UUID.randomUUID(),
                         savedOrder.getId(),
                         item.getSku(),
-                        item.getQuantity()
+                        item.getQuantity(),
+                        order.getCustomerEmail(),
+                        order.getTotalAmount()
                 ))
                 .forEach(event -> saveOutboxEvent(
                         KafkaTopics.INVENTORY_RESERVE_REQUESTED,

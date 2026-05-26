@@ -1,11 +1,13 @@
 package com.orderplatform.payment_service.kafka;
 
 
+import com.orderplatform.payment_service.config.KafkaTopics;
 import com.orderplatform.payment_service.event.PaymentCompletedEvent;
 import com.orderplatform.payment_service.event.PaymentFailedEvent;
 import com.orderplatform.payment_service.event.PaymentRequestedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +22,10 @@ public class PaymentRequestConsumer {
 
     private final Random random = new Random();
 
+    @KafkaListener(
+            topics = KafkaTopics.PAYMENT_REQUESTED,
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
     public void consume(PaymentRequestedEvent event) throws InterruptedException {
         log.info(
                 "Received payment request: orderId={}, amount={}",

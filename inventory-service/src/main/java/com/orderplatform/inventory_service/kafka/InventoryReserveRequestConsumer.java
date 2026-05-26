@@ -75,6 +75,18 @@ public class InventoryReserveRequestConsumer {
                     )
             );
 
+            inventoryProducer.sendPaymentRequestedEvent(
+
+                    new PaymentRequestedEvent(
+
+                            event.orderId(),
+
+                            event.customerEmail(),
+
+                            event.amount()
+                    )
+            );
+
             processedEventRepository.save(
 
                     ProcessedEvent.builder()

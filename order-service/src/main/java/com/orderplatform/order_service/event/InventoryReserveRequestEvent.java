@@ -1,5 +1,6 @@
 package com.orderplatform.order_service.event;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public record InventoryReserveRequestEvent(
@@ -10,6 +11,10 @@ public record InventoryReserveRequestEvent(
 
         String sku,
 
-        Integer quantity
+        Integer quantity,
+
+        String customerEmail,
+
+        BigDecimal amount
 ){
 }

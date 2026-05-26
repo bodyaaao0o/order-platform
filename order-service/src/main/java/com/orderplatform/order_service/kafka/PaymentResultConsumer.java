@@ -23,7 +23,9 @@ public class PaymentResultConsumer {
     @Transactional
     @KafkaListener(
             topics = KafkaTopics.PAYMENT_COMPLETED,
-            groupId = "payment-result-group"
+            groupId = "payment-result-group-v2",
+            containerFactory =
+                    "paymentCompletedKafkaListenerContainerFactory"
     )
     public void consumePaymentCompleted(
             PaymentCompletedEvent event
@@ -31,7 +33,9 @@ public class PaymentResultConsumer {
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new OrderNotFoundException(event.orderId()));
 
-        order.setStatus(OrderStatus.COMPLETED);
+        if (order.getStatus() == OrderStatus.PROCESSING) {
+            order.setStatus(OrderStatus.COMPLETED);
+        }
 
         log.info("Order completed successfully: orderId={}",
                 event.orderId());
@@ -40,14 +44,18 @@ public class PaymentResultConsumer {
     @Transactional
     @KafkaListener(
             topics = KafkaTopics.PAYMENT_FAILED,
-            groupId = "payment-result-group"
+            groupId = "payment-result-group-v2",
+            containerFactory =
+                    "paymentFailedKafkaListenerContainerFactory"
     )
     public void consumePaymentFailed(PaymentFailedEvent event) {
 
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new OrderNotFoundException(event.orderId()));
 
-        order.setStatus(OrderStatus.FAILED);
+        if (order.getStatus() != OrderStatus.COMPLETED) {
+            order.setStatus(OrderStatus.FAILED);
+        }
         log.warn(
                 "Order payment failed: orderId={}, reason={}",
                 event.orderId(),

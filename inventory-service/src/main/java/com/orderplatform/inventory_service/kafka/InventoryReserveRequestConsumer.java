@@ -1,15 +1,11 @@
 package com.orderplatform.inventory_service.kafka;
 
 import com.orderplatform.inventory_service.config.KafkaTopics;
-import com.orderplatform.inventory_service.event.ProcessedEvent;
 import com.orderplatform.inventory_service.event.*;
 import com.orderplatform.inventory_service.exception.InsufficientStockException;
-import com.orderplatform.inventory_service.event.ProcessedEventRepository;
 import com.orderplatform.inventory_service.service.InventoryService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -38,11 +34,24 @@ public class InventoryReserveRequestConsumer {
             InventoryReserveRequestEvent event
     ) {
 
-        if (
-                processedEventRepository.existsByEventId(
-                        event.eventId().toString()
-                )
-        ) {
+        try {
+
+            processedEventRepository.save(
+
+                    ProcessedEvent.builder()
+
+                            .eventId(
+                                    event.eventId().toString()
+                            )
+
+                            .processedAt(
+                                    LocalDateTime.now(ZoneOffset.UTC)
+                            )
+
+                            .build()
+            );
+
+        } catch (DataIntegrityViolationException e) {
 
             log.warn(
                     "Event already processed: {}",
@@ -87,23 +96,8 @@ public class InventoryReserveRequestConsumer {
                     )
             );
 
-            processedEventRepository.save(
-
-                    ProcessedEvent.builder()
-
-                            .eventId(
-                                    event.eventId().toString()
-                            )
-
-                            .processedAt(
-                                    LocalDateTime.now(ZoneOffset.UTC)
-                            )
-
-                            .build()
-            );
-
             log.info(
-                    "Inventory reserved: orderId={}, sku={}, quantity={}",
+                    "Inventory reserved and payment requested: orderId={}, sku={}, quantity={}",
                     event.orderId(),
                     event.sku(),
                     event.quantity()

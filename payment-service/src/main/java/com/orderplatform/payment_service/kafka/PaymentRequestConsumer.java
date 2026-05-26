@@ -20,7 +20,7 @@ public class PaymentRequestConsumer {
 
     private final PaymentProducer paymentProducer;
 
-    private final Random random = new Random();
+    boolean paymentSuccess = true;
 
     @KafkaListener(
             topics = KafkaTopics.PAYMENT_REQUESTED,
@@ -34,8 +34,6 @@ public class PaymentRequestConsumer {
         );
 
         Thread.sleep(2000);
-
-        boolean paymentSuccess = random.nextBoolean();
 
         if (paymentSuccess) {
             paymentProducer.sendPaymentCompletedEvent(new PaymentCompletedEvent(event.orderId()));

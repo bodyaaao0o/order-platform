@@ -9,9 +9,8 @@ spring:
     bootstrap-servers: kafka:9092
 
     consumer:
-      group-id: payment-group
-
-      auto-offset-reset: earliest
+      group-id: payment-result-group-v2
+      auto-offset-reset: latest
 
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
@@ -19,8 +18,12 @@ spring:
 
       properties:
         spring.json.trusted.packages: "com.orderplatform.*"
+        spring.json.value.default.type: com.orderplatform.payment_service.event.PaymentRequestedEvent
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
 
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+      properties:
+        spring.json.add.type.headers: false

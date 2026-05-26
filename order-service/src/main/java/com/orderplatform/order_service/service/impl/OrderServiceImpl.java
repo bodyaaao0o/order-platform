@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -87,6 +88,7 @@ public class OrderServiceImpl implements OrderService {
         savedOrder.getItems()
                 .stream()
                 .map(item -> new InventoryReserveRequestEvent(
+                        UUID.randomUUID(),
                         savedOrder.getId(),
                         item.getSku(),
                         item.getQuantity()

@@ -1,14 +1,22 @@
 package com.orderplatform.inventory_service.kafka;
 
 import com.orderplatform.inventory_service.config.KafkaTopics;
-import com.orderplatform.inventory_service.event.InventoryFailedEvent;
-import com.orderplatform.inventory_service.event.InventoryReserveRequestEvent;
-import com.orderplatform.inventory_service.event.InventoryReservedEvent;
+import com.orderplatform.inventory_service.event.ProcessedEvent;
+import com.orderplatform.inventory_service.event.*;
+import com.orderplatform.inventory_service.exception.InsufficientStockException;
+import com.orderplatform.inventory_service.event.ProcessedEventRepository;
 import com.orderplatform.inventory_service.service.InventoryService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Slf4j
 @Component
@@ -16,13 +24,33 @@ import org.springframework.stereotype.Component;
 public class InventoryReserveRequestConsumer {
 
     private final InventoryService inventoryService;
+
     private final InventoryProducer inventoryProducer;
 
+    private final ProcessedEventRepository processedEventRepository;
+
+    @Transactional
     @KafkaListener(
             topics = KafkaTopics.INVENTORY_RESERVE_REQUESTED,
             groupId = "${spring.kafka.consumer.group-id}"
     )
-    public void consume(InventoryReserveRequestEvent event) {
+    public void consume(
+            InventoryReserveRequestEvent event
+    ) {
+
+        if (
+                processedEventRepository.existsByEventId(
+                        event.eventId().toString()
+                )
+        ) {
+
+            log.warn(
+                    "Event already processed: {}",
+                    event.eventId()
+            );
+
+            return;
+        }
 
         log.info(
                 "Received inventory reserve request: orderId={}, sku={}, quantity={}",
@@ -32,6 +60,7 @@ public class InventoryReserveRequestConsumer {
         );
 
         try {
+
             inventoryService.reserveStock(
                     event.orderId(),
                     event.sku(),
@@ -46,13 +75,30 @@ public class InventoryReserveRequestConsumer {
                     )
             );
 
+            processedEventRepository.save(
+
+                    ProcessedEvent.builder()
+
+                            .eventId(
+                                    event.eventId().toString()
+                            )
+
+                            .processedAt(
+                                    LocalDateTime.now(ZoneOffset.UTC)
+                            )
+
+                            .build()
+            );
+
             log.info(
                     "Inventory reserved: orderId={}, sku={}, quantity={}",
                     event.orderId(),
                     event.sku(),
                     event.quantity()
             );
-        } catch (RuntimeException e) {
+
+        } catch (InsufficientStockException e) {
+
             inventoryProducer.sendInventoryFailedEvent(
                     new InventoryFailedEvent(
                             event.orderId(),
@@ -70,18 +116,5 @@ public class InventoryReserveRequestConsumer {
                     e.getMessage()
             );
         }
-
-        inventoryService.reserveStock(
-                event.orderId(),
-                event.sku(),
-                event.quantity()
-        );
-
-        log.info(
-                "Inventory reserved: orderId={}, sku={}, quantity={}",
-                event.orderId(),
-                event.sku(),
-                event.quantity()
-        );
     }
 }

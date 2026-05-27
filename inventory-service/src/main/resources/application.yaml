@@ -45,7 +45,9 @@ spring:
 
       properties:
         spring.json.trusted.packages: "*"
-        spring.json.value.default.type: com.orderplatform.inventory_service.event.InventoryReserveRequestEvent
+        spring.json.type.mapping: >-
+          inventoryReserveRequest:com.orderplatform.inventory_service.event.InventoryReserveRequestEvent,
+          inventoryReleaseRequested:com.orderplatform.inventory_service.event.InventoryReleaseRequestedEvent
 
 management:
   endpoints:

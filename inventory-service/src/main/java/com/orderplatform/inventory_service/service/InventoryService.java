@@ -7,8 +7,10 @@ import com.orderplatform.inventory_service.exception.ProductNotFoundException;
 import com.orderplatform.inventory_service.product.ProductRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InventoryService {
@@ -32,5 +34,20 @@ public class InventoryService {
         product.setReservedStock(
                 product.getReservedStock() + quantity
         );
+    }
+
+    @Transactional
+    public void releaseReservedStock(Long orderId, String sku, Integer quantity) {
+
+        Product product = productRepository.findBySkuForUpdate(sku)
+                .orElseThrow(() -> new ProductNotFoundException(sku));
+
+        int newReservedStock = product.getReservedStock() - quantity;
+
+        if (newReservedStock < 0) {
+            newReservedStock = 0;
+        }
+
+        product.setReservedStock(newReservedStock);
     }
 }

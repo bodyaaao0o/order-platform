@@ -2,7 +2,10 @@ package com.orderplatform.order_service.kafka;
 
 import com.orderplatform.order_service.config.KafkaTopics;
 import com.orderplatform.order_service.entity.Order;
+import com.orderplatform.order_service.entity.OrderItem;
 import com.orderplatform.order_service.entity.OrderStatus;
+import com.orderplatform.order_service.event.InventoryReleaseRequestedEvent;
+import com.orderplatform.order_service.event.InventoryReserveRequestEvent;
 import com.orderplatform.order_service.event.PaymentCompletedEvent;
 import com.orderplatform.order_service.event.PaymentFailedEvent;
 import com.orderplatform.order_service.exception.OrderNotFoundException;
@@ -13,12 +16,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class PaymentResultConsumer {
 
     private final OrderRepository orderRepository;
+
+    private final OrderProducer orderProducer;
 
     @Transactional
     @KafkaListener(
@@ -53,8 +60,22 @@ public class PaymentResultConsumer {
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new OrderNotFoundException(event.orderId()));
 
+        OrderItem item = order.getItems().getFirst();
+
         if (order.getStatus() != OrderStatus.COMPLETED) {
             order.setStatus(OrderStatus.FAILED);
+
+            orderProducer.sendInventoryReleaseRequestedEvent(
+                    new InventoryReleaseRequestedEvent(
+                            UUID.randomUUID(),
+
+                            order.getId(),
+
+                            item.getSku(),
+
+                            item.getQuantity()
+                    )
+            );
         }
         log.warn(
                 "Order payment failed: orderId={}, reason={}",

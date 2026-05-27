@@ -14,4 +14,6 @@ public interface ProductService {
     ProductResponse createProduct(CreateProductRequest request);
 
     ProductResponse updateStock(String sku, Integer stock);
+
+    void deleteProduct(String sku);
 }

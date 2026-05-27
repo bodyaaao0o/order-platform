@@ -60,4 +60,12 @@ public class ProductServiceImpl implements ProductService{
         return productMapper.toResponse(updatedProduct);
     }
 
+    @Override
+    public void deleteProduct(String sku) {
+        Product product = productRepository.findBySku(sku)
+                .orElseThrow(() -> new ProductNotFoundException(sku));
+
+        productRepository.delete(product);
+    }
+
 }

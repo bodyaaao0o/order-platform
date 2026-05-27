@@ -2,6 +2,7 @@ package com.orderplatform.order_service.kafka;
 
 
 import com.orderplatform.order_service.config.KafkaTopics;
+import com.orderplatform.order_service.event.InventoryReleaseRequestedEvent;
 import com.orderplatform.order_service.event.InventoryReserveRequestEvent;
 import com.orderplatform.order_service.event.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -20,5 +21,13 @@ public class OrderProducer {
 
     public void sendInventoryReserveRequestEvent(InventoryReserveRequestEvent event) {
         kafkaTemplate.send(KafkaTopics.INVENTORY_RESERVE_REQUESTED, event);
+    }
+
+    public void sendInventoryReleaseRequestedEvent(InventoryReleaseRequestedEvent event) {
+        kafkaTemplate.send(KafkaTopics.INVENTORY_RELEASE_REQUESTED, event);
+//        log.info(
+//                "Inventory release requested event sent: orderId={}",
+//                event.orderId()
+//        );
     }
 }

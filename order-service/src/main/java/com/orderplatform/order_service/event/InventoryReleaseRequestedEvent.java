@@ -1,0 +1,15 @@
+package com.orderplatform.order_service.event;
+
+import java.util.UUID;
+
+public record InventoryReleaseRequestedEvent(
+
+        UUID eventId,
+
+        Long orderId,
+
+        String sku,
+
+        Integer quantity
+) {
+}

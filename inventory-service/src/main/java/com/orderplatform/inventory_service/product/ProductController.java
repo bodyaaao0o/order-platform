@@ -5,6 +5,7 @@ import com.orderplatform.inventory_service.product.dto.CreateProductRequest;
 import com.orderplatform.inventory_service.product.dto.ProductResponse;
 import com.orderplatform.inventory_service.product.dto.UpdateStockRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -52,5 +53,11 @@ public class ProductController {
     )
     public ProductResponse updateStock(@PathVariable String sku, @RequestBody UpdateStockRequest request) {
         return productService.updateStock(sku, request.stock());
+    }
+
+    @DeleteMapping("/{sku}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProduct(@PathVariable String sku) {
+        productService.deleteProduct(sku);
     }
 }

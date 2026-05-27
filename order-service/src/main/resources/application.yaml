@@ -42,7 +42,9 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
       properties:
-        spring.json.add.type.headers: false
+        spring.json.type.mapping: >-
+          inventoryReserveRequest:com.orderplatform.order_service.event.InventoryReserveRequestEvent,
+          inventoryReleaseRequested:com.orderplatform.order_service.event.InventoryReleaseRequestedEvent
 
     consumer:
       group-id: order-group

@@ -8,7 +8,6 @@ import com.orderplatform.payment_service.event.PaymentRequestedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Random;
@@ -20,7 +19,7 @@ public class PaymentRequestConsumer {
 
     private final PaymentProducer paymentProducer;
 
-    boolean paymentSuccess = true;
+    boolean paymentSuccess = false;
 
     @KafkaListener(
             topics = KafkaTopics.PAYMENT_REQUESTED,

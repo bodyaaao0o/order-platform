@@ -42,6 +42,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
       properties:
+        interceptor.classes: com.orderplatform.order_service.tracing.KafkaTraceProducerInterceptor
         spring.json.type.mapping: >-
           inventoryReserveRequest:com.orderplatform.order_service.event.InventoryReserveRequestEvent,
           inventoryReleaseRequested:com.orderplatform.order_service.event.InventoryReleaseRequestedEvent
@@ -52,6 +53,8 @@ spring:
 
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        interceptor.classes: com.orderplatform.order_service.tracing.KafkaTraceConsumerInterceptor
 
 jwt:
   secret: mySuperSecretKeyMySuperSecretKey123

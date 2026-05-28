@@ -2,6 +2,7 @@ package com.orderplatform.order_service.config;
 
 import com.orderplatform.order_service.event.PaymentCompletedEvent;
 import com.orderplatform.order_service.event.PaymentFailedEvent;
+import com.orderplatform.order_service.tracing.KafkaTraceConsumerInterceptor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -24,7 +25,7 @@ public class PaymentKafkaConsumerConfig {
     ) {
 
         JsonDeserializer<PaymentCompletedEvent> deserializer =
-                new JsonDeserializer<>(PaymentCompletedEvent.class, false);;
+                new JsonDeserializer<>(PaymentCompletedEvent.class, false);
 
         deserializer.addTrustedPackages("*");
 
@@ -37,6 +38,11 @@ public class PaymentKafkaConsumerConfig {
         props.put(
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
                 StringDeserializer.class
+        );
+
+        props.put(
+                ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+                KafkaTraceConsumerInterceptor.class.getName()
         );
 
         DefaultKafkaConsumerFactory<String, PaymentCompletedEvent>
@@ -78,6 +84,11 @@ public class PaymentKafkaConsumerConfig {
         props.put(
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
                 StringDeserializer.class
+        );
+
+        props.put(
+                ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+                KafkaTraceConsumerInterceptor.class.getName()
         );
 
         DefaultKafkaConsumerFactory<String, PaymentFailedEvent>

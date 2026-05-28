@@ -31,6 +31,9 @@ public class PaymentRequestConsumer {
                 event.orderId(),
                 event.amount()
         );
+        // For testing dead letter queue handling
+
+//        throw new RuntimeException("TEST DLQ");
 
         Thread.sleep(2000);
 

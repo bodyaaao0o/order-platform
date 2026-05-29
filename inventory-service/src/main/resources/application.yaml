@@ -45,7 +45,6 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 
       properties:
-        interceptor.classes: com.orderplatform.inventory_service.tracing.KafkaTraceConsumerInterceptor
         spring.json.trusted.packages: "*"
         spring.json.type.mapping: >-
           inventoryReserveRequest:com.orderplatform.inventory_service.event.InventoryReserveRequestEvent,

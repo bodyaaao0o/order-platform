@@ -1,51 +1,37 @@
 package com.orderplatform.inventory_service.tracing;
 
 import com.orderplatform.inventory_service.common.TracingConstants;
-import org.apache.kafka.clients.consumer.ConsumerInterceptor;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.MDC;
+import org.springframework.kafka.listener.RecordInterceptor;
+import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
-public class KafkaTraceConsumerInterceptor implements ConsumerInterceptor<String, Object> {
-
-    @Override
-    public ConsumerRecords<String, Object> onConsume(ConsumerRecords<String, Object> records) {
-        records.forEach((record) -> {
-            var header = record.headers()
-                    .lastHeader(TracingConstants.TRACE_ID);
-
-            if (header != null) {
-                String traceId = new String(
-                        header.value(),
-                        StandardCharsets.UTF_8
-                );
-
-                MDC.put(TracingConstants.TRACE_ID, traceId);
-            }
-        });
-
-        return records;
-    }
+@Component
+public class KafkaTraceConsumerInterceptor implements RecordInterceptor<Object, Object> {
 
     @Override
-    public void onCommit(
-            Map<TopicPartition, OffsetAndMetadata> offsets
+    public ConsumerRecord<Object, Object> intercept(
+            ConsumerRecord<Object, Object> record,
+            Consumer<Object, Object> consumer
     ) {
+        var header = record.headers().lastHeader(TracingConstants.TRACE_ID);
+        if (header != null) {
+            String traceId = new String(header.value(), StandardCharsets.UTF_8);
+            MDC.put(TracingConstants.TRACE_ID, traceId);
+        } else {
+            MDC.remove(TracingConstants.TRACE_ID);
+        }
+        return record;
     }
 
     @Override
-    public void close() {
-
-        MDC.clear();
-    }
-
-    @Override
-    public void configure(
-            Map<String, ?> configs
+    public void afterRecord(
+            ConsumerRecord<Object, Object> record,
+            Consumer<Object, Object> consumer
     ) {
+        MDC.remove(TracingConstants.TRACE_ID);
     }
 }

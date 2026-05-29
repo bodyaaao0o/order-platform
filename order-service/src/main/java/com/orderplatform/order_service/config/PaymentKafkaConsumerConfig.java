@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.RecordInterceptor;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.util.HashMap;
@@ -21,14 +22,13 @@ public class PaymentKafkaConsumerConfig {
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, PaymentCompletedEvent>
     paymentCompletedKafkaListenerContainerFactory(
-            KafkaProperties kafkaProperties
+            KafkaProperties kafkaProperties,
+            KafkaTraceConsumerInterceptor traceInterceptor
     ) {
-
         JsonDeserializer<PaymentCompletedEvent> deserializer =
                 new JsonDeserializer<>(PaymentCompletedEvent.class, false);
 
         deserializer.addTrustedPackages("*");
-
         deserializer.setUseTypeHeaders(false);
 
         Map<String, Object> props = new HashMap<>(
@@ -40,41 +40,35 @@ public class PaymentKafkaConsumerConfig {
                 StringDeserializer.class
         );
 
-        props.put(
-                ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
-                KafkaTraceConsumerInterceptor.class.getName()
-        );
-
-        DefaultKafkaConsumerFactory<String, PaymentCompletedEvent>
-                consumerFactory =
+        DefaultKafkaConsumerFactory<String, PaymentCompletedEvent> consumerFactory =
                 new DefaultKafkaConsumerFactory<>(
                         props,
                         new StringDeserializer(),
                         deserializer
                 );
 
-        ConcurrentKafkaListenerContainerFactory<
-                String,
-                PaymentCompletedEvent
-                > factory =
+        ConcurrentKafkaListenerContainerFactory<String, PaymentCompletedEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory);
 
+        @SuppressWarnings("unchecked")
+        RecordInterceptor<String, PaymentCompletedEvent> typedInterceptor =
+                (RecordInterceptor<String, PaymentCompletedEvent>) (RecordInterceptor<?, ?>) traceInterceptor;
+        factory.setRecordInterceptor(typedInterceptor);
         return factory;
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, PaymentFailedEvent>
     paymentFailedKafkaListenerContainerFactory(
-            KafkaProperties kafkaProperties
+            KafkaProperties kafkaProperties,
+            KafkaTraceConsumerInterceptor traceInterceptor
     ) {
-
         JsonDeserializer<PaymentFailedEvent> deserializer =
                 new JsonDeserializer<>(PaymentFailedEvent.class, false);
 
         deserializer.addTrustedPackages("*");
-
         deserializer.setUseTypeHeaders(false);
 
         Map<String, Object> props = new HashMap<>(
@@ -86,27 +80,22 @@ public class PaymentKafkaConsumerConfig {
                 StringDeserializer.class
         );
 
-        props.put(
-                ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
-                KafkaTraceConsumerInterceptor.class.getName()
-        );
-
-        DefaultKafkaConsumerFactory<String, PaymentFailedEvent>
-                consumerFactory =
+        DefaultKafkaConsumerFactory<String, PaymentFailedEvent> consumerFactory =
                 new DefaultKafkaConsumerFactory<>(
                         props,
                         new StringDeserializer(),
                         deserializer
                 );
 
-        ConcurrentKafkaListenerContainerFactory<
-                String,
-                PaymentFailedEvent
-                > factory =
+        ConcurrentKafkaListenerContainerFactory<String, PaymentFailedEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory);
 
+        @SuppressWarnings("unchecked")
+        RecordInterceptor<String, PaymentFailedEvent> typedInterceptor =
+                (RecordInterceptor<String, PaymentFailedEvent>) (RecordInterceptor<?, ?>) traceInterceptor;
+        factory.setRecordInterceptor(typedInterceptor);
         return factory;
     }
 }

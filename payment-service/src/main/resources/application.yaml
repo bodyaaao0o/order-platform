@@ -19,7 +19,6 @@ spring:
       properties:
         spring.json.trusted.packages: "com.orderplatform.*"
         spring.json.value.default.type: com.orderplatform.payment_service.event.PaymentRequestedEvent
-        interceptor.classes: com.orderplatform.payment_service.tracing.KafkaTraceConsumerInterceptor
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer

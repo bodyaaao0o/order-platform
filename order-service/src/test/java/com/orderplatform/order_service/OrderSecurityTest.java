@@ -28,7 +28,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(SecurityConfig.class)
-class OrderSecurityTest {
+class OrderSecurityTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

@@ -2,6 +2,10 @@ spring:
   application:
     name: order-service
 
+  cloud:
+    function:
+      definition: processOrder
+
   datasource:
     url: jdbc:postgresql://localhost:5433/order_platform?options=-c%20TimeZone=Europe/Kyiv
     username: postgres
@@ -69,7 +73,68 @@ server:
 cache:
   ttl-minutes: 10
 
-management:
+# 🔌 RESILIENCE4J - Fault Tolerance Паттерни
+resilience4j:
+  circuitbreaker:
+    instances:
+      # 🔴 Circuit Breaker для викликів до Inventory Service
+      inventory-service:
+        # Коли перейти в OPEN (припинити запити)
+        failure-rate-threshold: 50        # 50% помилок = OPEN
+        minimum-number-of-calls: 5        # Мінімум 5 запитів перед оцінкою
+
+        # Коли повернутись в CLOSED (поновити нормальну роботу)
+        slow-call-rate-threshold: 100      # Вважати SLOW якщо >1сек
+        slow-call-duration-threshold: 1000 # 1 секунда = SLOW
+        wait-duration-in-open-state: 10000 # Чекати 10сек перед HALF_OPEN
+        automatic-transition-from-open-to-half-open-enabled: true
+
+        # Логування
+        record-exceptions:
+          - java.net.ConnectException
+          - java.io.IOException
+          - org.springframework.web.client.RestClientException
+
+      # 🔴 Circuit Breaker для Payment Service
+      payment-service:
+        failure-rate-threshold: 30        # 30% помилок = OPEN
+        minimum-number-of-calls: 10
+        slow-call-rate-threshold: 100
+        slow-call-duration-threshold: 2000
+        wait-duration-in-open-state: 15000
+
+  # 🔄 RETRY: Повторити запит якщо упав
+  retry:
+    instances:
+      inventory-service:
+        max-attempts: 3                   # Спробуємо 3 рази
+        wait-duration: 500               # Чекаємо 500мс між спробами
+        enable-exponential-backoff: true  # 1 * 0.5s → 2 * 0.5s → 4 * 0.5s
+        exponential-backoff-multiplier: 2
+
+      payment-service:
+        max-attempts: 2
+        wait-duration: 1000
+
+  # ⏱️ TIMEOUT: Максимальний час очікування
+  timelimiter:
+    instances:
+      inventory-service:
+        timeout-duration: 5000            # 5 секунд макс
+        cancel-running-future: true       # Скасув Future якщо timeout
+
+      payment-service:
+        timeout-duration: 10000           # 10 секунд макс
+
+  # 🚪 BULKHEAD: Обмежити паралельні запити
+  bulkhead:
+    instances:
+      inventory-service:
+        max-concurrent-calls: 10          # Не більше 10 паралельних запитів
+        max-wait-duration: 2000           # Чекаємо max 2сек якщо черга
+
+      payment-service:
+        max-concurrent-calls: 5
   endpoints:
     web:
       exposure:
@@ -83,3 +148,13 @@ management:
     metrics:
       export:
         enabled: true
+
+  # 📊 Трейсинг конфігурація
+  tracing:
+    sampling:
+      probability: 1.0  # 100% семплування для розробки
+
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans  # Адреса Zipkin
+

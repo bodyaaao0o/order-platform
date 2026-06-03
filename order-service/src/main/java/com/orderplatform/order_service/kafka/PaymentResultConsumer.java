@@ -10,6 +10,7 @@ import com.orderplatform.order_service.event.PaymentCompletedEvent;
 import com.orderplatform.order_service.event.PaymentFailedEvent;
 import com.orderplatform.order_service.exception.OrderNotFoundException;
 import com.orderplatform.order_service.repository.OrderRepository;
+import com.orderplatform.order_service.saga.SagaStateMachine;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +25,8 @@ import java.util.UUID;
 public class PaymentResultConsumer {
 
     private final OrderRepository orderRepository;
-
     private final OrderProducer orderProducer;
+    private final SagaStateMachine sagaStateMachine;
 
     @Transactional
     @KafkaListener(
@@ -39,6 +40,8 @@ public class PaymentResultConsumer {
     ) {
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new OrderNotFoundException(event.orderId()));
+
+        sagaStateMachine.markPaymentCompleted(event.orderId());
 
         if (order.getStatus() == OrderStatus.PROCESSING) {
             order.setStatus(OrderStatus.COMPLETED);
@@ -60,6 +63,8 @@ public class PaymentResultConsumer {
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new OrderNotFoundException(event.orderId()));
 
+        sagaStateMachine.markPaymentFailed(event.orderId(), event.reason());
+
         OrderItem item = order.getItems().getFirst();
 
         if (order.getStatus() != OrderStatus.COMPLETED) {
@@ -68,11 +73,8 @@ public class PaymentResultConsumer {
             orderProducer.sendInventoryReleaseRequestedEvent(
                     new InventoryReleaseRequestedEvent(
                             UUID.randomUUID(),
-
                             order.getId(),
-
                             item.getSku(),
-
                             item.getQuantity()
                     )
             );

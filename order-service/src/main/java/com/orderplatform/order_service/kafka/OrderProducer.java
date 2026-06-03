@@ -5,6 +5,7 @@ import com.orderplatform.order_service.config.KafkaTopics;
 import com.orderplatform.order_service.event.InventoryReleaseRequestedEvent;
 import com.orderplatform.order_service.event.InventoryReserveRequestEvent;
 import com.orderplatform.order_service.event.OrderCreatedEvent;
+import com.orderplatform.order_service.event.PaymentRequestedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -29,5 +30,9 @@ public class OrderProducer {
 //                "Inventory release requested event sent: orderId={}",
 //                event.orderId()
 //        );
+    }
+
+    public void sendPaymentRequestedEvent(PaymentRequestedEvent event) {
+        kafkaTemplate.send(KafkaTopics.PAYMENT_REQUESTED, event);
     }
 }

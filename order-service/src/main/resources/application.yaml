@@ -73,6 +73,11 @@ server:
 cache:
   ttl-minutes: 10
 
+saga:
+  recovery:
+    fixed-delay-ms: 60000
+    stuck-timeout-minutes: 10
+
 # 🔌 RESILIENCE4J - Fault Tolerance Паттерни
 resilience4j:
   circuitbreaker:

@@ -47,9 +47,28 @@ public class KafkaTopicConfig {
         );
     }
 
+    @Bean
+    public NewTopic inventoryReleasedTopic() {
+        return new NewTopic(
+                KafkaTopics.INVENTORY_RELEASED,
+                1,
+                (short) 1
+        );
+    }
+
+    @Bean
     public NewTopic inventoryFailedTopic() {
         return new NewTopic(
                 KafkaTopics.INVENTORY_FAILED,
+                1,
+                (short) 1
+        );
+    }
+
+    @Bean
+    public NewTopic sagaDeadLetterTopic() {
+        return new NewTopic(
+                KafkaTopics.SAGA_DEAD_LETTER,
                 1,
                 (short) 1
         );

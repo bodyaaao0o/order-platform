@@ -14,6 +14,7 @@ import com.orderplatform.order_service.mapper.OrderMapper;
 import com.orderplatform.order_service.repository.OrderRepository;
 import com.orderplatform.order_service.repository.OutboxEventRepository;
 import com.orderplatform.order_service.repository.UserRepository;
+import com.orderplatform.order_service.saga.SagaStateMachine;
 import com.orderplatform.order_service.service.OrderService;
 import com.orderplatform.order_service.config.KafkaTopics;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
+    private final SagaStateMachine sagaStateMachine;
 
     @Override
     @Transactional
@@ -84,6 +86,9 @@ public class OrderServiceImpl implements OrderService {
         order.setItems(items);
 
         Order savedOrder = orderRepository.save(order);
+
+        sagaStateMachine.startSaga(savedOrder.getId());
+        sagaStateMachine.markInventoryRequested(savedOrder.getId());
 
         savedOrder.getItems()
                 .stream()

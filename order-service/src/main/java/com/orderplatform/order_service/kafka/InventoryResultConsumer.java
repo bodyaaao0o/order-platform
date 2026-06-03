@@ -10,6 +10,8 @@ import com.orderplatform.order_service.event.InventoryFailedEvent;
 import com.orderplatform.order_service.event.InventoryReservedEvent;
 import com.orderplatform.order_service.exception.OrderNotFoundException;
 import com.orderplatform.order_service.repository.OrderRepository;
+import com.orderplatform.order_service.saga.SagaStateMachine;
+import com.orderplatform.order_service.event.InventoryReleasedEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ public class InventoryResultConsumer {
 
     private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper;
+    private final SagaStateMachine sagaStateMachine;
 
     @Transactional
     @KafkaListener(
@@ -37,6 +40,9 @@ public class InventoryResultConsumer {
 
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new OrderNotFoundException(event.orderId()));
+
+        sagaStateMachine.markInventoryReserved(event.orderId());
+        sagaStateMachine.markInventoryRequested(event.orderId());
 
         if (order.getStatus() == OrderStatus.CREATED) {
             order.setStatus(OrderStatus.PROCESSING);
@@ -64,6 +70,8 @@ public class InventoryResultConsumer {
         Order order = orderRepository.findById(event.orderId())
                 .orElseThrow(() -> new OrderNotFoundException(event.orderId()));
 
+        sagaStateMachine.markInventoryFailed(event.orderId(), event.reason());
+
         if (order.getStatus() != OrderStatus.COMPLETED) {
             order.setStatus(OrderStatus.FAILED);
         }
@@ -74,6 +82,34 @@ public class InventoryResultConsumer {
                 event.sku(),
                 event.quantity(),
                 event.reason()
+        );
+    }
+
+    @Transactional
+    @KafkaListener(
+            topics = KafkaTopics.INVENTORY_RELEASED,
+            groupId = "order-inventory-result-group-v2",
+            containerFactory = "inventoryResultKafkaListenerContainerFactory"
+    )
+    public void consumeInventoryReleased(String payload) {
+        InventoryReleasedEvent event =
+                readEvent(payload, InventoryReleasedEvent.class);
+
+        Order order = orderRepository.findById(event.orderId())
+                .orElseThrow(() -> new OrderNotFoundException(event.orderId()));
+
+        sagaStateMachine.markCompensated(event.orderId());
+
+        if (order.getStatus() != OrderStatus.COMPLETED) {
+            order.setStatus(OrderStatus.FAILED);
+        }
+
+        log.info(
+                "Order compensation completed: orderId={}, sku={}, quantity={}, releaseId={}",
+                event.orderId(),
+                event.sku(),
+                event.quantity(),
+                event.releaseId()
         );
     }
 

@@ -16,6 +16,9 @@ public class KafkaTopics {
 
     public static final String PAYMENT_FAILED = "payment-failed";
 
+    public static final String PAYMENT_REQUESTED =
+            "payment-requested";
+
     public static final String INVENTORY_RELEASE_REQUESTED =
             "inventory-release-requested";
 
@@ -24,4 +27,10 @@ public class KafkaTopics {
 
     public static final String PAYMENT_REQUESTED_DLQ =
             "payment-requested-dlq";
+
+    public static final String SAGA_DEAD_LETTER =
+            "saga-dead-letter";
+
+    public static final String INVENTORY_RELEASED =
+            "inventory-released";
 }

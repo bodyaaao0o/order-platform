@@ -19,6 +19,10 @@ public class InventoryProducer {
 
     public void sendInventoryReservedEvent(InventoryReservedEvent event) {
         kafkaTemplate.send(KafkaTopics.INVENTORY_RESERVED, event);
+        log.info(
+                "INVENTORY_RESERVED SENT: orderId={}",
+                event.orderId()
+        );
     }
 
     public void sendInventoryFailedEvent(InventoryFailedEvent event) {

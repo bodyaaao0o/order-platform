@@ -42,7 +42,7 @@ public class InventoryResultConsumer {
                 .orElseThrow(() -> new OrderNotFoundException(event.orderId()));
 
         sagaStateMachine.markInventoryReserved(event.orderId());
-        sagaStateMachine.markInventoryRequested(event.orderId());
+        sagaStateMachine.markPaymentRequested(event.orderId());
 
         if (order.getStatus() == OrderStatus.CREATED) {
             order.setStatus(OrderStatus.PROCESSING);

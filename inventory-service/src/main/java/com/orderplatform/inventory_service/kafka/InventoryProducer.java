@@ -3,6 +3,7 @@ package com.orderplatform.inventory_service.kafka;
 
 import com.orderplatform.inventory_service.config.KafkaTopics;
 import com.orderplatform.inventory_service.event.InventoryFailedEvent;
+import com.orderplatform.inventory_service.event.InventoryReleasedEvent;
 import com.orderplatform.inventory_service.event.InventoryReservedEvent;
 import com.orderplatform.inventory_service.event.PaymentRequestedEvent;
 import lombok.RequiredArgsConstructor;
@@ -32,10 +33,19 @@ public class InventoryProducer {
     public  void sendPaymentRequestedEvent(PaymentRequestedEvent event) {
         kafkaTemplate.send(KafkaTopics.PAYMENT_REQUESTED, event);
 
-        InventoryProducer.log.info(
+        log.info(
                 "Payment requested event sent: orderId={}, amount={}",
                 event.orderId(),
                 event.amount()
+        );
+    }
+
+    public void sendInventoryReleasedEvent(InventoryReleasedEvent event) {
+        kafkaTemplate.send(KafkaTopics.INVENTORY_RELEASED, event);
+
+        log.info(
+                "INVENTORY_RELEASED SENT: orderId={}",
+                event.orderId()
         );
     }
 }

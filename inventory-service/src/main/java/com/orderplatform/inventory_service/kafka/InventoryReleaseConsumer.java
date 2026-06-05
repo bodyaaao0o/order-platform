@@ -3,11 +3,14 @@ package com.orderplatform.inventory_service.kafka;
 
 import com.orderplatform.inventory_service.config.KafkaTopics;
 import com.orderplatform.inventory_service.event.InventoryReleaseRequestedEvent;
+import com.orderplatform.inventory_service.event.InventoryReleasedEvent;
 import com.orderplatform.inventory_service.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class InventoryReleaseConsumer {
 
     private final InventoryService inventoryService;
+    private final InventoryProducer inventoryProducer;
 
     @KafkaListener(
             topics = KafkaTopics.INVENTORY_RELEASE_REQUESTED,
@@ -31,6 +35,15 @@ public class InventoryReleaseConsumer {
                 event.orderId(),
                 event.sku(),
                 event.quantity()
+        );
+
+        inventoryProducer.sendInventoryReleasedEvent(
+                new InventoryReleasedEvent(
+                        event.orderId(),
+                        event.sku(),
+                        event.quantity(),
+                        UUID.randomUUID().toString()
+                )
         );
     }
 }

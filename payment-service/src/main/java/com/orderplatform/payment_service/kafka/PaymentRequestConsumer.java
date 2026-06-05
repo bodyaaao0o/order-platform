@@ -19,7 +19,7 @@ public class PaymentRequestConsumer {
 
     private final PaymentProducer paymentProducer;
 
-    boolean paymentSuccess = false;
+    boolean paymentSuccess = true;
 
     @KafkaListener(
             topics = KafkaTopics.PAYMENT_REQUESTED,

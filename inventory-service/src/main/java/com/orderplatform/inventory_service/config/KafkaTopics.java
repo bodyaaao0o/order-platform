@@ -22,4 +22,7 @@ public class KafkaTopics {
 
     public static final String PAYMENT_REQUESTED_DLQ =
             "payment-requested-dlq";
+
+    public static final String INVENTORY_RELEASED =
+            "inventory-released";
 }

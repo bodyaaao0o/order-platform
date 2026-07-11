@@ -147,7 +147,10 @@ public class SagaStateMachine {
     public SagaInstance markPaymentCompleted(Long orderId) {
         SagaInstance saga = getSaga(orderId);
 
-        if (saga.getStatus() == SagaStatus.COMPLETED) {
+        if (saga.getStatus() == SagaStatus.PAYMENT_COMPLETED
+                || saga.getStatus() == SagaStatus.SHIPMENT_REQUESTED
+                || saga.getStatus() == SagaStatus.SHIPMENT_CREATED
+                || saga.getStatus() == SagaStatus.COMPLETED) {
             return saga;
         }
 
@@ -166,9 +169,107 @@ public class SagaStateMachine {
 
         moveTo(
                 saga,
+                SagaStatus.PAYMENT_COMPLETED,
+                SagaStep.SHIPMENT_PROCESSING,
+                "PAYMENT_COMPLETED",
+                null
+        );
+
+        return saga;
+    }
+
+    @Transactional
+    public SagaInstance markShipmentRequested(Long orderId) {
+        SagaInstance saga = getSaga(orderId);
+
+        if (saga.getStatus() == SagaStatus.SHIPMENT_REQUESTED
+                || saga.getStatus() == SagaStatus.SHIPMENT_CREATED
+                || saga.getStatus() == SagaStatus.COMPLETED) {
+            return saga;
+        }
+
+        if (saga.isTerminal()) {
+            log.info("Ignoring shipment requested event for terminal saga: orderId={}, status={}",
+                    orderId,
+                    saga.getStatus());
+            return saga;
+        }
+
+        ensureStatus(
+                saga,
+                SagaStatus.PAYMENT_COMPLETED,
+                "Shipment can only be requested after payment completion"
+        );
+
+        moveTo(
+                saga,
+                SagaStatus.SHIPMENT_REQUESTED,
+                SagaStep.SHIPMENT_PROCESSING,
+                "SHIPMENT_REQUESTED",
+                null
+        );
+
+        return saga;
+    }
+
+    @Transactional
+    public SagaInstance markShipmentCreated(Long orderId) {
+        SagaInstance saga = getSaga(orderId);
+
+        if (saga.getStatus() == SagaStatus.SHIPMENT_CREATED) {
+            return saga;
+        }
+
+        if (saga.isTerminal()) {
+            log.info("Ignoring shipment created event for terminal saga: orderId={}, status={}",
+                    orderId,
+                    saga.getStatus());
+            return saga;
+        }
+
+        ensureStatus(
+                saga,
+                SagaStatus.SHIPMENT_REQUESTED,
+                "Shipment can only be created after shipment request"
+        );
+
+        moveTo(
+                saga,
+                SagaStatus.SHIPMENT_CREATED,
+                SagaStep.SHIPMENT_PROCESSING,
+                "SHIPMENT_CREATED",
+                null
+        );
+
+        return saga;
+    }
+
+    @Transactional
+    public SagaInstance markShipmentDelivered(Long orderId) {
+        SagaInstance saga = getSaga(orderId);
+
+        if (saga.getStatus() == SagaStatus.COMPLETED) {
+            return saga;
+        }
+
+        if (saga.isTerminal()) {
+            log.info("Ignoring shipment delivered event for terminal saga: orderId={}, status={}",
+                    orderId,
+                    saga.getStatus());
+            return saga;
+        }
+
+        ensureStatus(
+                saga,
+                SagaStatus.SHIPMENT_CREATED,
+                "Shipment can only be delivered after shipment creation"
+        );
+
+        moveTo(
+                saga,
                 SagaStatus.COMPLETED,
                 SagaStep.FINISHED,
-                "PAYMENT_COMPLETED",
+                "SHIPMENT_DELIVERED",
                 null
         );
 

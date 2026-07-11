@@ -208,6 +208,10 @@ public class OrderServiceImpl implements OrderService {
             throw new InvalidOrderStateException("Completed order cannot be modified");
         }
 
+        if (currentStatus == OrderStatus.DELIVERED) {
+            throw new InvalidOrderStateException("Delivered order cannot be modified");
+        }
+
         if (currentStatus == OrderStatus.CANCELLED) {
             throw new InvalidOrderStateException("Cancelled order cannot be modified");
         }

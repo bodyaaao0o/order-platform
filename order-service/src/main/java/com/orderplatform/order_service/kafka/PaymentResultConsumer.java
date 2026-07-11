@@ -4,16 +4,14 @@ import com.orderplatform.order_service.config.KafkaTopics;
 import com.orderplatform.order_service.entity.Order;
 import com.orderplatform.order_service.entity.OrderItem;
 import com.orderplatform.order_service.entity.OrderStatus;
-import com.orderplatform.order_service.event.InventoryReleaseRequestedEvent;
-import com.orderplatform.order_service.event.InventoryReserveRequestEvent;
-import com.orderplatform.order_service.event.PaymentCompletedEvent;
-import com.orderplatform.order_service.event.PaymentFailedEvent;
+import com.orderplatform.order_service.event.*;
 import com.orderplatform.order_service.exception.OrderNotFoundException;
 import com.orderplatform.order_service.repository.OrderRepository;
 import com.orderplatform.order_service.saga.SagaStateMachine;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +27,7 @@ public class PaymentResultConsumer {
     private final SagaStateMachine sagaStateMachine;
 
     @Transactional
+    @CacheEvict(value = "orders", key = "#event.orderId()")
     @KafkaListener(
             topics = KafkaTopics.PAYMENT_COMPLETED,
             groupId = "payment-result-group-v2",
@@ -44,14 +43,35 @@ public class PaymentResultConsumer {
         sagaStateMachine.markPaymentCompleted(event.orderId());
 
         if (order.getStatus() == OrderStatus.PROCESSING) {
-            order.setStatus(OrderStatus.COMPLETED);
+
+            order.setStatus(
+                    OrderStatus.AWAITING_SHIPMENT
+            );
+
+            orderProducer.sendShipmentRequestedEvent(
+
+                    new ShipmentRequestedEvent(
+
+                            order.getId(),
+
+                            order.getCustomerEmail()
+                    )
+            );
+
+            sagaStateMachine.markShipmentRequested(order.getId());
+
+            log.info(
+                    "Shipment requested: orderId={}",
+                    order.getId()
+            );
         }
 
-        log.info("Order completed successfully: orderId={}",
+        log.info("Order payment completed; awaiting shipment: orderId={}",
                 event.orderId());
     }
 
     @Transactional
+    @CacheEvict(value = "orders", key = "#event.orderId()")
     @KafkaListener(
             topics = KafkaTopics.PAYMENT_FAILED,
             groupId = "payment-result-group-v2",

@@ -74,5 +74,31 @@ public class KafkaTopicConfig {
         );
     }
 
+    @Bean
+    public NewTopic shipmentRequestedTopic() {
+        return new NewTopic(
+                KafkaTopics.SHIPMENT_REQUESTED,
+                1,
+                (short) 1
+        );
+    }
+
+    @Bean
+    public NewTopic shipmentCreatedTopic() {
+        return new NewTopic(
+                KafkaTopics.SHIPMENT_CREATED,
+                1,
+                (short) 1
+        );
+    }
+
+    @Bean
+    public NewTopic shipmentDeliveredTopic() {
+        return new NewTopic(
+                KafkaTopics.SHIPMENT_DELIVERED,
+                1,
+                (short) 1
+        );
+    }
 
 }

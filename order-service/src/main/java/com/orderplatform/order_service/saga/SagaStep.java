@@ -8,6 +8,8 @@ public enum SagaStep {
 
     PAYMENT_PROCESSING,
 
+    SHIPMENT_PROCESSING,
+
     INVENTORY_COMPENSATION,
 
     FINISHED

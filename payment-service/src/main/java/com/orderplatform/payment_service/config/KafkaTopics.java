@@ -19,4 +19,10 @@ public class KafkaTopics {
 
     public static final String PAYMENT_REQUESTED_DLQ =
             "payment-requested-dlq";
+
+    public static final String SHIPMENT_REQUESTED = "shipment-requested";
+
+    public static final String SHIPMENT_CREATED = "shipment-created";
+
+    public static final String SHIPMENT_DELIVERED = "shipment-delivered";
 }

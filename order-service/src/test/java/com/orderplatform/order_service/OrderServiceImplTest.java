@@ -5,11 +5,13 @@ import com.orderplatform.order_service.dto.CreateOrderItemRequest;
 import com.orderplatform.order_service.dto.CreateOrderRequest;
 import com.orderplatform.order_service.dto.OrderResponse;
 import com.orderplatform.order_service.entity.Order;
+import com.orderplatform.order_service.entity.OrderItem;
 import com.orderplatform.order_service.entity.OrderStatus;
 import com.orderplatform.order_service.mapper.OrderMapper;
 import com.orderplatform.order_service.repository.OrderRepository;
 import com.orderplatform.order_service.repository.OutboxEventRepository;
 import com.orderplatform.order_service.repository.UserRepository;
+import com.orderplatform.order_service.saga.SagaStateMachine;
 import com.orderplatform.order_service.service.impl.OrderServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +48,9 @@ class OrderServiceImplTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private SagaStateMachine sagaStateMachine;
+
     @InjectMocks
     private OrderServiceImpl orderService;
 
@@ -69,6 +74,15 @@ class OrderServiceImplTest {
                 .totalAmount(BigDecimal.valueOf(200))
                 .status(OrderStatus.CREATED)
                 .build();
+        savedOrder.setItems(List.of(
+                OrderItem.builder()
+                        .sku("LAPTOP-1")
+                        .productName("Laptop")
+                        .quantity(2)
+                        .price(BigDecimal.valueOf(100))
+                        .order(savedOrder)
+                        .build()
+        ));
 
         OrderResponse response = new OrderResponse(
                 1L,

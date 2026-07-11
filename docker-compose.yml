@@ -249,6 +249,30 @@ services:
 
     restart: unless-stopped
 
+  shipping-service:
+    build:
+      context: ./shipping-service
+
+    container_name: shipping-service
+
+    ports:
+      - "8086:8086"
+
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+    depends_on:
+      - kafka
+
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8086/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   kafka_data:

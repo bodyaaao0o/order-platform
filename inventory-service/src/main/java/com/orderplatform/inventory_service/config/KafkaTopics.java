@@ -25,4 +25,10 @@ public class KafkaTopics {
 
     public static final String INVENTORY_RELEASED =
             "inventory-released";
+
+    public static final String SHIPMENT_REQUESTED = "shipment-requested";
+
+    public static final String SHIPMENT_CREATED = "shipment-created";
+
+    public static final String SHIPMENT_DELIVERED = "shipment-delivered";
 }

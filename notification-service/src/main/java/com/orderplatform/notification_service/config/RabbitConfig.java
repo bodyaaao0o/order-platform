@@ -31,6 +31,7 @@ public class RabbitConfig {
         return new DirectExchange(EMAIL_EXCHANGE);
     }
 
+    @Bean
     public Binding binding(
             Queue emailQueue,
             DirectExchange emailExchange

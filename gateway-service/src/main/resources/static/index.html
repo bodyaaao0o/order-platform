@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order Platform Console</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Order Platform</h1>
+      <p id="session-label">Not signed in</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-button" id="refresh-all" title="Refresh data" type="button">R</button>
+      <button class="secondary" id="logout-button" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <form id="auth-form" class="panel">
+        <div class="panel-head">
+          <h2>Session</h2>
+          <div class="segmented">
+            <button class="active" data-auth-mode="login" type="button">Login</button>
+            <button data-auth-mode="register" type="button">Register</button>
+          </div>
+        </div>
+        <label>Email<input id="auth-email" autocomplete="email" type="email" required></label>
+        <label>Password<input id="auth-password" autocomplete="current-password" type="password" required></label>
+        <button class="primary" id="auth-submit" type="submit">Login</button>
+      </form>
+
+      <section class="panel compact">
+        <h2>Health</h2>
+        <div class="health-grid">
+          <button data-health="/actuator/health" type="button">Gateway</button>
+          <button data-health="/api/v1/orders/trace-demo" type="button">Trace</button>
+        </div>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <nav class="tabs" aria-label="Views">
+        <button class="active" data-tab="orders" type="button">Orders</button>
+        <button data-tab="products" type="button">Inventory</button>
+        <button data-tab="sagas" type="button">Sagas</button>
+        <button data-tab="request" type="button">Request</button>
+      </nav>
+
+      <section class="view active" id="orders-view">
+        <div class="grid two">
+          <form id="order-form" class="panel">
+            <div class="panel-head">
+              <h2>Create Order</h2>
+              <button class="icon-button" id="add-order-item" title="Add item" type="button">+</button>
+            </div>
+            <label>Customer email<input id="order-email" type="email" required></label>
+            <div id="order-items" class="item-stack"></div>
+            <button class="primary" type="submit">Create order</button>
+          </form>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Orders</h2>
+              <div class="inline-controls">
+                <select id="order-status-filter">
+                  <option value="">All statuses</option>
+                  <option>CREATED</option>
+                  <option>PROCESSING</option>
+                  <option>AWAITING_SHIPMENT</option>
+                  <option>SHIPPED</option>
+                  <option>DELIVERED</option>
+                  <option>COMPLETED</option>
+                  <option>CANCELLED</option>
+                  <option>FAILED</option>
+                </select>
+                <button class="icon-button" id="refresh-orders" title="Refresh orders" type="button">R</button>
+              </div>
+            </div>
+            <div id="orders-list" class="list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="products-view">
+        <div class="grid two">
+          <form id="product-form" class="panel">
+            <h2>Create Product</h2>
+            <label>Name<input id="product-name" required></label>
+            <label>SKU<input id="product-sku" required></label>
+            <label>Price<input id="product-price" min="0.01" step="0.01" type="number" required></label>
+            <label>Stock<input id="product-stock" min="0" step="1" type="number" required></label>
+            <button class="primary" type="submit">Create product</button>
+          </form>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Inventory</h2>
+              <button class="icon-button" id="refresh-products" title="Refresh products" type="button">R</button>
+            </div>
+            <div id="products-list" class="list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="sagas-view">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Sagas</h2>
+            <div class="inline-controls">
+              <select id="saga-status-filter">
+                <option value="">All statuses</option>
+                <option>STARTED</option>
+                <option>INVENTORY_RESERVATION_REQUESTED</option>
+                <option>INVENTORY_RESERVED</option>
+                <option>PAYMENT_REQUESTED</option>
+                <option>PAYMENT_COMPLETED</option>
+                <option>SHIPMENT_REQUESTED</option>
+                <option>SHIPMENT_CREATED</option>
+                <option>COMPLETED</option>
+                <option>COMPENSATION_REQUESTED</option>
+                <option>COMPENSATED</option>
+                <option>FAILED</option>
+                <option>NEEDS_MANUAL_REVIEW</option>
+              </select>
+              <button class="icon-button" id="refresh-sagas" title="Refresh sagas" type="button">R</button>
+            </div>
+          </div>
+          <div id="sagas-list" class="list"></div>
+        </section>
+      </section>
+
+      <section class="view" id="request-view">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Request Console</h2>
+            <button class="secondary" id="send-request" type="button">Send</button>
+          </div>
+          <div class="request-grid">
+            <select id="request-method">
+              <option>GET</option>
+              <option>POST</option>
+              <option>PATCH</option>
+              <option>DELETE</option>
+            </select>
+            <input id="request-path" value="/api/v1/orders">
+          </div>
+          <textarea id="request-body" spellcheck="false">{}</textarea>
+          <pre id="request-output"></pre>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <div id="toast" role="status"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

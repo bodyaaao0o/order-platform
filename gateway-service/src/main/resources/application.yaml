@@ -32,6 +32,13 @@ spring:
               predicates:
                 - Path=/api/v1/products/**
 
+            - id: saga-admin-service
+
+              uri: http://app:8081
+
+              predicates:
+                - Path=/api/v1/admin/sagas/**
+
 management:
   endpoints:
     web:

@@ -37,7 +37,8 @@ public class ShipmentResultConsumer {
 
         sagaStateMachine.markShipmentCreated(event.orderId());
 
-        if (order.getStatus() == OrderStatus.AWAITING_SHIPMENT) {
+        if (order.getStatus() == OrderStatus.PROCESSING
+                || order.getStatus() == OrderStatus.AWAITING_SHIPMENT) {
             order.setStatus(OrderStatus.SHIPPED);
         }
 
@@ -62,7 +63,9 @@ public class ShipmentResultConsumer {
 
         sagaStateMachine.markShipmentDelivered(event.orderId());
 
-        if (order.getStatus() == OrderStatus.SHIPPED) {
+        if (order.getStatus() == OrderStatus.PROCESSING
+                || order.getStatus() == OrderStatus.AWAITING_SHIPMENT
+                || order.getStatus() == OrderStatus.SHIPPED) {
             order.setStatus(OrderStatus.DELIVERED);
         }
 
